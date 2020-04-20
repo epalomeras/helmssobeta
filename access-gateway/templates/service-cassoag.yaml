@@ -1,0 +1,25 @@
+# Access Gateway Service
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-access-gateway
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    description: "Service for the Access Gateway"
+  labels:
+    app: {{ template "fullname" . }}
+    release: {{ .Release.Name }}
+spec:
+  type: {{ .Values.sso.accessGateway.service.type }}
+  ports:
+  - name: http
+    port: 6080
+    nodePort: {{ .Values.sso.accessGateway.service.port.http }}
+    targetPort: 6080
+  - name: https
+    port: 6443
+    nodePort: {{ .Values.sso.accessGateway.service.port.https }}
+    targetPort: 6443
+  selector: 
+      app: {{ template "fullname" . }}
+      ca.com/sso-pod: access-gateway

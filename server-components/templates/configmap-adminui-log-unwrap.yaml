@@ -1,0 +1,18 @@
+{{- if .Values.admin.enabled -}}
+---
+# log unwrap script for admin-ui container
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-log-unwrap
+  namespace: {{ .Release.Namespace }} 
+  labels:
+    release: {{ .Release.Name }} 
+    app: {{ template "fullname" . }}
+  annotations:
+    #"helm.sh/hook": pre-install
+data:
+  # When the config map is mounted as a volume, these will be created as files.
+  log-unwrap.sh: |-
+    tail -n+1 -F /opt/CA/siteminder/adminui/standalone/log/server.log | awk '{if($0 ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/){if(s){print s;s=$0}else{s=$0}}else{s=s" "$0}}END{print s}'
+{{- end }}

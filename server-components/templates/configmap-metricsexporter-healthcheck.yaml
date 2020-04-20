@@ -1,0 +1,21 @@
+{{- if .Values.policyServer.enabled -}}
+---
+# Healthcheck configuration script for metricsexporter containers
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-metricsexporter-healthcheck
+  namespace: {{ .Release.Namespace }} 
+  labels:
+    release: {{ .Release.Name }} 
+    app: {{ template "fullname" . }} 
+data:
+  # When the config map is mounted as a volume, these will be created as files.
+  metricsexporter-health-check.sh: |-
+    OK=$(netstat -tlnp | awk '/:8088 */ {split($NF,a,"/"); print a[2]}' | grep java)
+    if [ "$OK" == "java" ]; then
+        exit 0
+    else
+        exit 1
+    fi
+{{- end }}

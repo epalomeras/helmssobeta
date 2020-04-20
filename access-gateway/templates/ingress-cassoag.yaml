@@ -1,0 +1,36 @@
+{{ if and .Values.sso.accessGateway.ingress.enable (eq .Values.sso.accessGateway.ingress.enable "YES") }}
+# Source: casso/templates/ingress-access-gateway.yaml
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: {{ .Release.Name }}-siteminder-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # The "heritage" label is used to track which tool deployed a given chart.
+    # It is useful for an admin who wants to see what releases a particular tool
+    # is responsible for.
+    heritage: kubernetes
+    # The "release" convention makes it easy to tie a release to all of the
+    # Kubernetes resources that were created as part of that release
+    release: {{ .Release.Name }}
+    app: {{ template "fullname" . }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: agsso.ca.com
+    http:
+      paths:
+        - path: /
+          backend:
+            serviceName: {{ .Release.Name }}-siteminder-access-gateway
+            servicePort: 6080
+  - host: casso.ca.local
+    http:
+      paths:
+        - path: /
+          backend:
+            serviceName: {{ .Release.Name }}-siteminder-access-gateway
+            servicePort: 6080
+{{- end }}

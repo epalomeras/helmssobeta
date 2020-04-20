@@ -1,0 +1,26 @@
+{{- if and (.Values.policyServer.enabled ) (eq (( .Values.global.policyServerParams.service.type )) "LoadBalancer") }}
+
+## Policy Server Health probe Service
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-policy-server-probe
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    description: "Service for the Policy Server Health Probe"
+  labels:
+    app: {{ template "fullname" . }}
+    release: {{ .Release.Name }}
+spec:
+  type: NodePort
+  ports:
+  - name: pshealthprobe
+    port: {{ .Values.global.policyServerParams.healthProbe.port }}
+    nodePort: {{ .Values.policyServer.serviceNodePort.psHealthProbe }}
+    targetPort: {{ .Values.global.policyServerParams.healthProbe.port }}
+  selector:
+      app: {{ template "fullname" . }}
+      release: {{ .Release.Name }}
+      ca.com/sso-pod: policy-server
+      ca.com/sso-role: policyserver
+{{- end }}

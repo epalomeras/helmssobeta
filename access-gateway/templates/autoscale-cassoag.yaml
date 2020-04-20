@@ -1,0 +1,27 @@
+# Ensure there is at least one Access Gateway, limit to a maximum number of configured Access Gateways and provide CPU metrics for monitoring purposes
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2beta1
+metadata:
+  name: {{ .Release.Name }}-siteminder-access-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    # The "release" convention makes it easy to tie a release to all of the
+    # Kubernetes resources that were created as part of that release.
+    release: {{ .Release.Name }}
+    app: {{ template "fullname" . }}
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    apiVersion: apps/v1
+    name: {{ .Release.Name }}-siteminder-access-gateway
+  minReplicas: {{ .Values.sso.accessGateway.pod.autoscaler.replicas.min }}
+  maxReplicas: {{ .Values.sso.accessGateway.pod.autoscaler.replicas.max }}
+  metrics:
+#  - type: Resource
+#    resource:
+#      name: cpu
+#      targetAverageUtilization: 60
+  - type: Pods
+    pods:
+      metricName: "apache_request_rate"
+      targetAverageValue: 1

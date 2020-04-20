@@ -1,0 +1,314 @@
+# This YAML-formatted file lets you manage the configuration of the Access Gateway pod.
+# The values you enter here will be auto-populated into the Access Gateway template yaml files.
+# Declare variables to be passed into your templates.
+# Each value must be entered with a space after : (note the space before and after : in the key-value pair)
+
+# All input strings must be in lower case for all configuration parameters. The only exceptions are 1) The value of the sso.policyserver.fipsmode parameter; it must be in upper case. 2) YES/NO choice
+
+
+# licenseRead value must be "YES" to proceed with Access Gateway container deployment. #
+licenseRead : "YES"
+
+# masterKeySeed will be used used for generating the master key and used for encrypting the secrets. It should be base64 encoded. #
+masterkey:
+   creds: "masterkeycreds"
+   masterKeySeed: "ZmlyZXdhbGw="
+
+# By default, fullname uses '-. The below entry overrides that and uses the given string instead. #
+fullnameOverride: "casso"
+
+# Pod's restart policy if liveness probe fails. Choice are (1)Always or (2)OnFailure. #
+restartPolicy: Always
+
+# Pod's DNS Policy . Choices are  (1)Default, (2)ClusterFirst, (3)ClusterFirstWithHostNet, (4)None. #
+dnsPolicy: ClusterFirst
+
+images:
+
+# Image Pull Policy Details. Choices are (1)Always , (2)IfNotPresent  #
+  imagePullPolicy: IfNotPresent
+
+# Access Gateway Docker Image Repository Details #
+# sso.registry.url specifies the url of the docker image registry.
+# sso.registry.credentials.username specifies the username of the docker image registry.
+# sso.registry.credentials.password specifies the password associated with above username. It should be encrypted and encoded using smSecretEncrypter tool and masterKeySeed .
+  sso:
+    registry:
+      url: "https://sso.packages.ca.com/v2/"
+      credentials:
+        username: "sso-install@ca"
+        password: "632707eb6473d78eb48e97c953e740ab088b11aa"
+
+# Access Gateway Config Retriever Docker Image Repository Details #
+    configuration:
+      repository: "sso.packages.ca.com/casso"
+      image: "config-retriever"
+      tag: "12.9.00.2403"
+    
+# Access Gateway Runtime Config Retriever Docker Image Repository Details #
+    runtime:
+      configuration:
+        repository: "sso.packages.ca.com/casso"
+        image: "runtime-config-retriever"
+        tag: "12.9.00.2403"
+      
+# Access Gateway Log Collector Docker Image Repository Details #
+    logging:
+      repository : "sso.packages.ca.com/casso"
+      image : "log-collector"
+      tag : "12.9.00.2403"
+      
+# Access Gateway Metrics Exporter Docker Image Repository Details #
+    agmetricsexporter:
+      repository : "sso.packages.ca.com/casso"
+      image : "agmetricsexporter"
+      tag : "12.9.00.2403"
+
+# Access Gateway Container Docker Image Repository Details #
+    accessGateway:
+      repository: "sso.packages.ca.com/casso"
+      image: "access-gateway"
+      tag: "12.9.00.2403"
+
+# Access Gateway Configuration Parameters #
+
+sso:
+
+#  Policy Server Details #
+# This section contains information required for access gateway to register with Policy Server .
+# if PS is within cluster, service field can be  "<Policyserver service name>.<namespace>.svc.cluster.local". 
+# if PS is in different cluster exposed with a Nodeport, service field should be "<Hostname of Master Node of PS cluster>:<Nodeport mapped to PolicyServer Service account port>".
+# if PS is in different cluster behind a loadbalancer, service field should be "<Hostname of Master Node of PS cluster>:<Load balancer port mapped to PolicyServer Service account port>".
+# policyserver.fipsmode specifies the FIPS MODE of Policy Server with which Access Gateway is going to be registered. The possible values are "COMPAT" for FIPS Compatible mode or "ONLY" for FIPS ONLY mode.
+  policyserver:
+    service: ""
+    fipsmode: "COMPAT"
+
+# Access Gateway Config Retriever Configuration #
+# configuration.type field can have one of the values  "local", "awsS3", "nfs" OR "git"
+# configuration.source field contains the path to the configuration folder in case of local, awsS3 and nfs. For structure of paths please refer to documentation
+# configuration.aws.creds specifies the handle to store AWS credentials. This can be left as it is
+# configuration.aws.keyId specifies the key ID required to access the AWS bucket. It should be encrypted and encoded using smSecretEncrypter tool and masterKeySeed 
+# configuration.aws.accessKey specifies the access key required to access the AWS bucket. It should be encrypted and encoded using smSecretEncrypter tool and masterKeySeed 
+# configuration.aws.region specifies the region of aws bucket 
+# configuration.git.creds specifies the handle to store GIT credentials. This can be left as it is
+# configuration.git.userName contains username of account which has access to git repository containing configuration 
+# configuration.git.accessToken contains accesstoken of the above user.  It should be encrypted and encoded using smSecretEncrypter tool and masterKeySeed 
+# configuration.git.folderPath contains path to git folder containing configuration. For structure of paths please refer to documentation
+  configuration:
+    type: "local"
+    source: ""
+    aws:
+      creds: "awscreds"
+      keyId: ""
+      accessKey: ""
+      region: ""
+    git:
+      creds: "gitcreds"
+      userName: ""
+      accessToken: ""
+      folderPath: ""
+
+# Access Gateway Runtime Config Retriever Configuration #
+# runtime.configuration.interval units are in minutes.
+# runtime.configuration.type field can have one of the values "local", 'awsS3", "nfs" OR "git".
+# runtime.configuration.source field contains the path to the runtime configuration folder in case of local, awsS3 and nfs. For structure of paths please refer to documentation.
+# runtime.configuration.aws.creds specifies the handle to store AWS credentials. This can be left as it is.
+# runtime.configuration.aws.keyId specifies the key ID to access the AWS bucket.  It should be encrypted and encoded using smSecretEncrypter tool and masterKeySeed 
+# runtime.configuration.aws.accessKey specifies the access key to access the AWS bucket. It should be encrypted and encoded using smSecretEncrypter tool and masterKeySeed 
+# runtime.configuration.aws.region specifies the region of AWS bucket.
+# runtime.configuration.git.creds specifies the handle to store GIT credentials. This can be left as it is.
+# runtime.configuration.git.userName contains username of account which has access to git repository containing runtime configuration. 
+# runtime.configuration.git.accessToken contains accesstoken of the above user.  It should be encrypted and encoded using smSecretEncrypter tool and masterKeySeed 
+# runtime.configuration.git.folderPath contains path to folder containing runtime configuration. For structure of paths please refer to documentation.
+  runtime:
+    configuration:
+      isEnable: "NO"
+      interval: 600
+      type: "local"
+      source : ""
+      aws:
+        creds: "runtimeawscreds"
+        keyId: ""
+        accessKey: ""
+        region: ""
+      git:
+        creds: "runtimegitcreds"
+        userName: ""
+        accessToken: ""
+        folderPath: ""
+      resource:
+        memoryRequest: 100Mi
+        cpuRequest: 10m
+
+# Access Gateway Metrics Exporter Configuration #
+# agmetricsexporter.livenessProbe.initialDelaySeconds specifies the delay in seconds after which the liveness probe for Access Gateway is launched once the container is up.
+# agmetricsexporter.livenessProbe.timeoutSeconds specifies the number of seconds after which the liveness probe for Access Gateway times out.
+# agmetricsexporter.readinessProbe.initialDelaySeconds specifies the delay in seconds after which the readiness probe for Access Gateway is launched once the container is up.
+# agmetricsexporter.readinessProbe.periodSeconds specifies the interval in seconds at which the readiness of Access Gateway is checked.
+  agmetricsexporter:
+    livenessProbe:
+      initialDelaySeconds : 40
+      timeoutSeconds : 10
+    readinessProbe:
+      initialDelaySeconds : 30
+      periodSeconds : 10
+    resource:
+      memoryRequest : 60Mi
+      cpuRequest : 30m
+
+# Host entries to be added to etc/hosts file. Any host that is not reachable with its name can be added here #
+# accessGateway.hostentry.ip contains the IP address to be mapped to Hostnames.
+# accessGateway.hostentry.names contains space delimited hostnames to be mapped to above IP address
+  accessGateway:
+    hostentry: 
+      ip: ""
+      names: ""
+
+# Access Gateway Liveness Readiness Probe Details #
+# livenessProbe.initialDelaySeconds specifies the delay in seconds after which the readiness probe for Access Gateway is launched once the container is up.
+# livenessProbe.timeoutSeconds specifies the number of seconds after which the liveness probe for Access Gateway times out.
+# readinessProbe.initialDelaySeconds specifies the delay in seconds after which the readiness probe for Access Gateway is launched once the container is up.
+# readinessProbe.periodSeconds specifies the interval in seconds at which the readiness of Access Gateway is checked.
+    livenessProbe:
+      initialDelaySeconds : 40
+      timeoutSeconds : 10
+    readinessProbe:
+      initialDelaySeconds : 30
+      periodSeconds : 10
+
+# Access Gateway Hostname details #
+# publicHostName Specifies the server name entry in httpd.conf file and httpd-ssl.conf file.
+    publicHostName : ""
+
+# Access Gateway Registration with Policy Server #
+# trustedHost specifies the trusted host name to be used while registering the access gateway with policy server.
+# aco specifies agent configuration object to be used while registering the access gateway with policy server.
+# hco specifies Host Configuration object to be used while registering the access gateway with policy server.
+    trustedHost : ""
+    enableSharedrollover: "NO"
+    aco : ""
+    hco : ""
+# Core/Crash dump file location
+    corePath: /corefiles/cores/
+# vhostNames specify the virtual host names that can be used to access Access Gateway #
+    vhostNames : ""
+# Enable or disable Access Gateway Agent . YES for enable (default), NO for disable. This should be kept "YES" for Access Gateway functionality to work.
+    enableAgent : "YES"
+
+# Apache Configuration #
+# apache.adminEmail specifies the Access Gateway apache admin email.
+# apache.trace specifies the value to enable or disable HTTP Trace method. default is YES
+    apache:
+      adminEmail : ""
+      trace : "YES"
+      
+# Access Gateway SSL Configuration #
+# ssl.enable is to either enable or disable SSL communication to Access gateway. It can be "NO" or "YES". If "YES", then remaining values are to be given.
+# ssl.certFile specifies the Server Public Certificate. The certificate file has to be placed in <config retriever root folder>/accessgateway/access-gateway/overlay/SSL/certs/.
+# ssl.keyFile specifies the Server Private Key. The key file has to be placed in <config retriever root folder>/accessgateway/access-gateway/overlay/SSL/keys/.
+# ssl.caFile contains the name of CA certs bundle. The bundle file has to be placed in <config retriever root folder>/accessgateway/access-gateway/overlay/SSL/certs/.
+# ssl.verifyType contains the Client Authentication Type. The values can be none, optional, require and optional_no_ca.
+# ssl.verifyDepth is number which specifies how deeply to verify the certificate issuer chain before deciding the certificate is not valid.( This is not given in quotes).
+# ssl.keyPwd contains password of Server certificate key file.
+      ssl:
+        enable : "NO"
+        certFile : ""
+        keyFile : ""
+        caFile : ""
+        verifyType : ""
+        verifyDepth : 
+        keyPwd : ""
+# noodle.ssl.enable is to enable https communication with backend servers. It can be "NO" or "YES". If "YES", then remaining values are to be given.
+# noodle.ssl.clientKey specifies the private key file name of noodle client certificate.
+#   The client key file has to be placed in <config retriever root folder>/accessgateway/access-gateway/overlay/SSL/clientcert/key/.
+#   The client cert file has to be placed in <config retriever root folder>/accessgateway/access-gateway/overlay/SSL/clientcert/certs/.
+# noodle.ssl.clientPassphrase specifies the pass phrase for client certificate.
+    noodle:
+      ssl:
+        enable : "NO"
+        clientKey : ""
+        clientPassphrase : ""
+
+# Node ports that can be used to access Access Gateway outside the cluster #
+# service.type is at "NodePort" . Not configurable
+# service.port.http specifies the value for the external service port to access the Access Gateway URL over http.
+# service.port.https specifies the value for the external service port to access the Access Gateway URL over https.
+    service:
+      type : "NodePort"
+      port:
+        http : 31090
+        https : 31353
+      
+
+# Access Gateway Ingress Configuration #
+# refer to documentation for ingress related information
+# ingress.enable can have values "YES" or "NO"(Default)
+    ingress:
+      enable: "NO"
+
+# Access Gateway Custom Metrics Configuration #
+# ag.custommetrics.enabled specifies whether custom metrics collection is enabled in Access Gateway. Possible values are "YES" and "NO" ( default)
+    ag:
+      custommetrics:
+        enabled: "NO"     
+
+# Access Gateway Resource configuration #
+# resource.memoryRequest specifies the memory requirements for Access Gateway container.
+# resource.cpuRequest specifies the cpu requirements for Access Gateway container.  
+      resource:
+        memoryRequest : 100Mi
+        cpuRequest : 30m
+
+# Access Gateway Autoscaling Configuration. #
+# pod.autoscaler.replicas.min specifies the minimum number of pods in the deployment.
+# pod.autoscaler.replicas.max specifies the maximum number of pods in the deployment.
+    pod:
+      autoscaler:
+        replicas:
+          min : 1
+          max : 4
+          
+# Access Gateway Log collector side car configuration #     
+# log.resource.memoryRequest specifies the memory of each log collector pod.
+# log.resource.cpuRequest specifies the cpu of each log collector pod.
+    log:
+      resource:
+        memoryRequest : 100Mi
+        cpuRequest : 10m
+
+# Access Gateway Authentication Authorization Web Services Configuration #
+# authaz.enable enables the authentication /authorization web service on container. Possible values are "YES" fr enable and "NO" for disable.
+# authaz.acoName specifies the Agent configuration object that is used for authentication or authorization web service. Use this parameter only if authaz.enable is set to Yes.
+# authaz.hostName specifies the virtual host name that is used for authentication or authorization web service. Use this parameter only if authaz.enable is set to Yes.
+    authaz:
+      enable : "NO"
+      acoName : ""
+      hostName : ""
+
+# Access Gateway STS Configuration #
+# sts.enable enables/disables STS access using Access Gateway. "YES" for enable, "NO" for disable( default).
+# sts.serviceName specifies the STS Service name.( Refer to documentation on STS)
+# sts.stsContext specifies the STS context path.( Refer to documentation on STS)
+    sts:
+      enable: "NO"
+      serviceName : ""
+      stsContext : ""
+
+# Federation Gateway Configuration  #
+# fedgateway.enable enables/disables the Federation web service access using Access Gateway. "YES" for enable (default), "NO" for disable.
+    fedgateway:
+      enable : "YES"
+
+
+# Provide details required in pre-install-secrets YAML #
+# regsecret.name specifies the name of the Kubernetes secret that holds the admin user name and admin password.
+# adminUserName specifies the siteminder admin username. It should be encrypted and encoded using smSecretEncrypter tool and masterKeySeed.
+# adminUserPassword specifies the siteminder admin password. It should be encrypted and encoded using smSecretEncrypter tool and masterKeySeed.
+    regsecret:
+      name : "regadmincreds"      
+  adminUserName : "SVE0bTFySm9KTjVtMGVnNVhLSnpFNDhqaEV0elNHVEM1SW9VeWdQNkxFZU9DTmIrNzNWYmZLM1lxOExVa09mbg=="
+  adminUserPassword : "NjNGa09DYVB6ZXhKMURxb3dhUnNlUUN4UHJzK29PTjVwREI2UXBxRXdpV3ZOSmtHVTV6ZXlhT2dWMWx4RzdoKw=="
+
+
+

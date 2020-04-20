@@ -1,0 +1,28 @@
+{{- if and (.Values.policyServer.enabled ) ( .Values.policyServer.autoscaling.enabled ) }}
+
+# Ensure there is at least one Policy Server, limit to a maximum of 100 Policy Servers and provide CPU metrics for monitoring purposes
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2beta1
+metadata:
+  name: {{ .Release.Name }}-siteminder-policy-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+    app: {{ template "fullname" . }}
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    apiVersion: apps/v1
+    name: {{ .Release.Name }}-siteminder-policy-server
+  minReplicas: {{ .Values.policyServer.autoscaling.replicasMin }}
+  maxReplicas: {{ .Values.policyServer.autoscaling.replicasMax }}
+  metrics:
+  - type: Pods
+    pods:
+      metricName: "policyserver_request_queue_in_use"
+      targetAverageValue: {{ .Values.policyServer.autoscaling.averageRequestQueueInUse }}
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: {{ .Values.policyServer.autoscaling.cpuUtilization }}
+{{- end }}

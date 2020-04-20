@@ -1,0 +1,36 @@
+{{- if .Values.policyServer.enabled -}}
+## Policy Server Service
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-policy-server
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    description: "Service for the Policy Server"
+{{- if .Values.global.policyServerParams.service.annotations.enabled }}
+{{ toYaml .Values.global.policyServerParams.service.annotations.values | indent 4 }}
+{{- end }}
+  labels:
+    app: {{ template "fullname" . }}
+    release: {{ .Release.Name }}
+spec:
+  type: {{ .Values.global.policyServerParams.service.type }}
+  ports:
+  - name: accnt
+    port: 44441
+    nodePort: {{ .Values.policyServer.serviceNodePort.accnt }}
+    targetPort: 44441
+  - name: authn
+    port: 44442
+    nodePort: {{ .Values.policyServer.serviceNodePort.authn }}
+    targetPort: 44442
+  - name: az
+    port: 44443
+    nodePort: {{ .Values.policyServer.serviceNodePort.az }}
+    targetPort: 44443
+  selector:
+      app: {{ template "fullname" . }}
+      release: {{ .Release.Name }}
+      ca.com/sso-pod: policy-server
+      ca.com/sso-role: policyserver
+{{- end }}

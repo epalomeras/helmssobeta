@@ -1,0 +1,31 @@
+{{- if and (.Values.policyServer.enabled ) (eq (( .Values.policyServer.enableRadiusServer|upper )) "YES") }}
+## Policy Server Service for UDP
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-policy-server-udp
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    description: "UDP Service for the Policy Server"
+  labels:
+    app: {{ template "fullname" . }}
+    release: {{ .Release.Name }}
+spec:
+  type: {{ .Values.global.policyServerParams.service.type }}
+  ports:
+  - name: radiusauthport
+    port: 1645
+    nodePort: {{ .Values.policyServer.serviceNodePort.radiusauthport }}
+    targetPort: 1645
+    protocol: UDP
+  - name: radiusacctport
+    port: 1646
+    nodePort: {{ .Values.policyServer.serviceNodePort.radiusacctport }}
+    targetPort: 1646
+    protocol: UDP
+  selector:
+      app: {{ template "fullname" . }}
+      release: {{ .Release.Name }}
+      ca.com/sso-pod: policy-server
+      ca.com/sso-role: policyserver
+{{- end }}

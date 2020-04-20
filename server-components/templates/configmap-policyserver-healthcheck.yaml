@@ -1,0 +1,21 @@
+# Healthcheck configuration script for policy server containers
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-policyserver-healthcheck
+  namespace: {{ .Release.Namespace }} 
+  labels:
+    release: {{ .Release.Name }} 
+    app: {{ template "fullname" . }}
+  annotations:
+    #"helm.sh/hook": pre-install
+data:
+  # When the config map is mounted as a volume, these will be created as files.
+  health-check.sh: |-
+    OK=$(netstat -tlnp | awk '/:44442 */ {split($NF,a,"/"); print a[2]}' | grep smpolicysrv)
+    if [ "$OK" == "smpolicysrv" ]; then
+        exit 0
+    else
+        exit 1
+    fi
+

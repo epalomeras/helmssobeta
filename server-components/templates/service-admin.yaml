@@ -1,0 +1,70 @@
+{{- if .Values.admin.enabled -}}
+---
+## Administrative Service
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-admin
+  namespace: {{ .Release.Namespace }} 
+  annotations:
+    description: "Service for the Admin Server"
+  labels:
+    app: {{ template "fullname" . }} 
+    release: {{ .Release.Name }} 
+spec:
+  type: NodePort
+  ports:
+  - name: adminuihttp
+    port: 8080
+    nodePort: {{ .Values.admin.adminUI.serviceNodePort.http }}
+    targetPort: 8080
+  - name: adminuihttps
+    port: 8443
+    nodePort: {{ .Values.admin.adminUI.serviceNodePort.https }}
+    targetPort: 8443
+  - name: accountingport
+    port: 44441
+    nodePort: {{ .Values.admin.policyServer.serviceNodePort.accnt }}
+    targetPort: 44441
+  - name: authenticationport
+    port: 44442
+    nodePort: {{ .Values.admin.policyServer.serviceNodePort.authn }}
+    targetPort: 44442
+  - name: authorizationport
+    port: 44443
+    nodePort: {{ .Values.admin.policyServer.serviceNodePort.az }}
+    targetPort: 44443
+  selector:
+      app: {{ template "fullname" . }} 
+      release: {{ .Release.Name }} 
+      ca.com/sso-pod: admin
+      ca.com/sso-role: admin
+---
+{{- if .Values.global.policyServerParams.ovm.enabled -}}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-ovm-admin
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    description: "Service for the OVM Service"
+  labels:
+    app: {{ template "fullname" . }}
+    release: {{ .Release.Name }}
+spec:
+  type: NodePort
+  ports:
+  - name: ovmmonitorport
+    port: 44449
+    nodePort: {{ .Values.global.policyServerParams.ovm.port }}
+    targetPort: 44449
+  - name: httpsovm
+    port: 8443
+    nodePort: {{ .Values.global.policyServerParams.ovm.GUIPort }}
+    targetPort: 8443
+  selector:
+      app: {{ template "fullname" . }}
+      release: {{ .Release.Name }}
+      statefulset.kubernetes.io/pod-name: {{ .Release.Name }}-siteminder-admin-0
+{{- end }}
+{{- end }}

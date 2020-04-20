@@ -1,0 +1,57 @@
+{{- if .Values.global.policyServerParams.smTrace.enabled }}
+# Healthcheck configuration script for policy server containers
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-log-ps-trace-unwrap
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+    app: {{ template "fullname" . }}
+  annotations:
+    #"helm.sh/hook": pre-install
+data:
+  # When the config map is mounted as a volume, these will be created as files.
+  smtrace-unwrap.sh: |-
+    tail -n+1 -F /opt/CA/siteminder/log/smtracedefault.log | awk '
+    BEGIN {
+    FS="^\\["; # Start of line...
+    FS=FS "|" "\\]\\["; # Between fields...
+    FS=FS "|" "\\]\r?$"; # End of line (with optional carriage return)...
+
+    header_count = 0; # Header count is unknown until we count the header fields...
+    }
+    /^\[==*\]/ {
+    # Got the header underline line after the header with field names...
+    save_line = $0;
+    $0 = prev_line;
+
+    header_count = NF;
+
+    for (f = 1; f <= NF; f++) { # Save the header names into an array...
+            field_to_header[f] = $f; # Field index to header name...
+            header_to_field[$f] = f; # Header name to field index...
+    }
+
+    $0 = save_line;
+    }
+    /^\[/{
+    prev_line = $0; # Save this line so we can parse the headers...
+    delete fields; # Clear saved fields on a new record...
+    }
+    {
+    # Build full set of fields in one record...
+    field_count = length(fields) ? length(fields) - 1 : 0;
+    for (f = 1; f <= NF; f++) {
+            fields[field_count + f] = fields[field_count + f] $f;
+    }
+
+    # If have the correct number of fields for a record, or the header count is unknown, then print the record...
+    if (length(fields) >= header_count) {
+            for (f = 2; f < length(fields); f++) {
+                    printf "[%s]", fields[f];
+            }
+            printf "\n";
+    }
+    }'
+{{- end }}

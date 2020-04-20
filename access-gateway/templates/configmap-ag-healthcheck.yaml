@@ -1,0 +1,25 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-siteminder-ag-healthcheck
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+    app: {{ template "fullname" . }}
+  annotations:
+data:
+  #File will get created in the container at specified location given in deployment-cassoag.yaml
+  health-check.sh: |-
+    OKF=""
+    if [ -f /opt/CA/secure-proxy/proxy-engine/conf/defaultagent/SmHost.conf ]; then
+       OKF="EXISTS"
+    fi
+
+    OKH=$(netstat -tlnp | awk '/:6080 */ {split($NF,a,"/"); print a[2]}' | grep httpd)
+    OKJ=$(netstat -tlnp | awk '/:8009 */ {split($NF,a,"/"); print a[2]}' | grep java)
+
+    if [[ "$OKH" == "httpd" && "$OKJ" == "java" && "$OKF" == "EXISTS" ]]; then
+        exit 0
+    else
+        exit 1
+    fi
