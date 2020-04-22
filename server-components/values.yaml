@@ -135,7 +135,7 @@ global:
 
     
   # Specify the location to store coredump
-  corePath: /corefiles/cores/
+  corePath: /tmp/corefiles/cores/
 
   # Config Retriever details
   configuration:
